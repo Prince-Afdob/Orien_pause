@@ -93,7 +93,13 @@ public class OrientationService extends Service implements SensorEventListener {
         if (overlayShown) return;
 
         overlayView = new LinearLayout(this);
-        overlayView.setBackgroundColor(0x80000000); // Semi-transparent black
+        overlayView.setBackgroundColor(0x10000000); // Semi-transparent black
+        overlayView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+                        View.SYSTEM_UI_FLAG_FULLSCREEN |
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        );
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
