@@ -22,7 +22,7 @@ import android.graphics.Color;
 //import android.os.Handler;
 //import android.os.Looper;
 //import android.widget.Toast;
-
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 
@@ -131,21 +131,27 @@ private void showOverlay() {
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.MATCH_PARENT
     ));
-    overlayLayout.setBackgroundColor(0x80000000); // Semi-transparent black
+    overlayLayout.setBackgroundColor(0x00000000); // Semi-transparent black
     overlayLayout.setOrientation(LinearLayout.VERTICAL); // Fix: LinearLayout supports setOrientation()
     //overlayLayout.setGravity(Gravity.CENTER);
+
+    ImageView lockIcon = new ImageView(this);
+    lockIcon.setImageResource(R.drawable.baseline_lock_24); // Make sure ic_lock exists in res/drawable
+    lockIcon.setLayoutParams(new LinearLayout.LayoutParams(80, 80)); // Set icon size (adjust as needed)
 
     // Create a TextView for the "Privacy Mode" message
     TextView privacyText = new TextView(this);
     privacyText.setText("Privacy Mode");
     privacyText.setTextSize(16);
     privacyText.setTextColor(Color.WHITE);
-    privacyText.setPadding(20, 20, 20, 20);
+    privacyText.setPadding(10, 10, 10, 10);
     //privacyText.setGravity(Gravity.CENTER);
     //privacyText.setTypeface(null, Typeface.BOLD);
 
     // Add TextView to the LinearLayout
+    overlayLayout.addView(lockIcon);
     overlayLayout.addView(privacyText);
+
 
     // WindowManager parameters for overlay
     WindowManager.LayoutParams params = new WindowManager.LayoutParams(
