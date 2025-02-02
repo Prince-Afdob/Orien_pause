@@ -40,6 +40,11 @@ public class OrientationService extends Service implements SensorEventListener {
         if (accelerometer != null) sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
         if (gyroscope != null) sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_UI);
 
+        if (accelerometer == null || gyroscope == null) {
+            stopSelf();
+            return;
+        }
+
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
     }
 
@@ -72,8 +77,8 @@ public class OrientationService extends Service implements SensorEventListener {
             intent.putExtra("roll", roll);
             sendBroadcast(intent);
 
-            // Lock screen when phone is between -20° and -80° tilt
-            if (roll >= -90 && roll <= -10) {
+            // Lock screen when phone is between -10° and -90° tilt
+            if (roll >= -90 && roll <= -20) {
                 showOverlay();
             } else {
                 removeOverlay();
@@ -124,5 +129,11 @@ public class OrientationService extends Service implements SensorEventListener {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        startForegroundService();
+        return START_STICKY;  // Restart if killed
     }
 }
