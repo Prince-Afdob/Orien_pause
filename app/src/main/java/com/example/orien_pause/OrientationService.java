@@ -13,7 +13,6 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -23,11 +22,11 @@ import androidx.annotation.Nullable;
 public class OrientationService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
-    private Sensor accelerometer, magnetometer;
-    private float[] gravity, geomagnetic;
+    private Sensor accelerometer, gyroscope;
+    private float[] gravity = new float[3];
+    private boolean overlayShown = false;
     private WindowManager windowManager;
     private View overlayView;
-    private boolean overlayShown = false;
 
     @Override
     public void onCreate() {
@@ -36,10 +35,10 @@ public class OrientationService extends Service implements SensorEventListener {
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         if (accelerometer != null) sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        if (magnetometer != null) sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI);
+        if (gyroscope != null) sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_UI);
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
     }
@@ -61,30 +60,23 @@ public class OrientationService extends Service implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            gravity = event.values;
-        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            geomagnetic = event.values;
-        }
+            System.arraycopy(event.values, 0, gravity, 0, event.values.length);
 
-        if (gravity != null && geomagnetic != null) {
-            float[] R = new float[9];
-            float[] I = new float[9];
-            if (SensorManager.getRotationMatrix(R, I, gravity, geomagnetic)) {
-                float[] orientation = new float[3];
-                SensorManager.getOrientation(R, orientation);
-                float azimuthInDegrees = (float) Math.toDegrees(orientation[0]);
+            // Calculate tilt angles
+            float pitch = (float) Math.toDegrees(Math.atan2(gravity[0], Math.sqrt(gravity[1] * gravity[1] + gravity[2] * gravity[2])));
+            float roll = (float) Math.toDegrees(Math.atan2(gravity[1], gravity[2]));
 
-                // Send broadcast update
-                Intent intent = new Intent("UPDATE_ORIENTATION");
-                intent.putExtra("orientation_degree", azimuthInDegrees);
-                sendBroadcast(intent);
+            // Broadcast orientation data
+            Intent intent = new Intent("UPDATE_ORIENTATION");
+            intent.putExtra("pitch", pitch);
+            intent.putExtra("roll", roll);
+            sendBroadcast(intent);
 
-                // Show overlay if within the restricted range
-                if (azimuthInDegrees >= -80 && azimuthInDegrees <= -20) {
-                    showOverlay();
-                } else {
-                    removeOverlay();
-                }
+            // Lock screen when phone is between -20° and -80° tilt
+            if (roll >= -90 && roll <= -10) {
+                showOverlay();
+            } else {
+                removeOverlay();
             }
         }
     }
@@ -93,19 +85,16 @@ public class OrientationService extends Service implements SensorEventListener {
         if (overlayShown) return;
 
         overlayView = new LinearLayout(this);
-        overlayView.setBackgroundColor(0x10000000); // Semi-transparent black
-        overlayView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
-                        View.SYSTEM_UI_FLAG_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
-                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        );
+        overlayView.setBackgroundColor(0x80000000); // Semi-transparent black
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE |
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.CENTER;

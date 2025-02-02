@@ -1,5 +1,4 @@
 package com.example.orien_pause;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView txtOrientation;
+    private TextView txtPitch, txtRoll;
     private BroadcastReceiver orientationReceiver;
 
     @Override
@@ -22,7 +21,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        txtOrientation = findViewById(R.id.txtOrientation);
+        txtPitch = findViewById(R.id.txtPitch);
+        txtRoll = findViewById(R.id.txtRoll);
         Button btnStart = findViewById(R.id.btnStart);
         Button btnStop = findViewById(R.id.btnStop);
 
@@ -41,8 +41,10 @@ public class MainActivity extends AppCompatActivity {
         orientationReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                float degree = intent.getFloatExtra("orientation_degree", 0);
-                txtOrientation.setText("Orientation: " + degree + "°");
+                float pitch = intent.getFloatExtra("pitch", 0);
+                float roll = intent.getFloatExtra("roll", 0);
+                txtPitch.setText("Pitch: " + pitch + "°");
+                txtRoll.setText("Roll: " + roll + "°");
             }
         };
 

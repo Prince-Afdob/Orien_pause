@@ -7,13 +7,22 @@
     android:padding="20dp">
 
     <TextView
-        android:id="@+id/txtOrientation"
+        android:id="@+id/txtPitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Orientation: 0°"
+        android:text="Pitch: 0°"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:padding="20dp" />
+        android:padding="10dp" />
+
+    <TextView
+        android:id="@+id/txtRoll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Roll: 0°"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:padding="10dp" />
 
     <Button
         android:id="@+id/btnStart"
