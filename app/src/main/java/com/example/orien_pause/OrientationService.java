@@ -16,6 +16,13 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.graphics.Typeface;
+import android.graphics.Color;
+//import android.os.Handler;
+//import android.os.Looper;
+//import android.widget.Toast;
+
 
 import androidx.annotation.Nullable;
 
@@ -77,7 +84,7 @@ public class OrientationService extends Service implements SensorEventListener {
             intent.putExtra("roll", roll);
             sendBroadcast(intent);
 
-            // Lock screen when phone is between -10° and -90° tilt
+            // Lock screen when phone is between -20° and -90° tilt
             if (roll >= -90 && roll <= -20) {
                 showOverlay();
             } else {
@@ -86,24 +93,78 @@ public class OrientationService extends Service implements SensorEventListener {
         }
     }
 
-    private void showOverlay() {
-        if (overlayShown) return;
+//    private void showOverlay() {
+//        if (overlayShown) return;
+//
+//        overlayView = new LinearLayout(this);
+//        overlayView.setBackgroundColor(0x80000000); // Semi-transparent black
+//
+//        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+//                WindowManager.LayoutParams.MATCH_PARENT,
+//                WindowManager.LayoutParams.MATCH_PARENT,
+//                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+//                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+//                PixelFormat.TRANSLUCENT
+//        );
+//        params.gravity = Gravity.CENTER;
+//
+//        windowManager.addView(overlayView, params);
+//        overlayShown = true;
+//    }
+//
+//    private void showPrivacyPopup() {
+//        Handler handler = new Handler(Looper.getMainLooper());
+//        handler.post(() ->
+//                Toast.makeText(getApplicationContext(), "Privacy Mode", Toast.LENGTH_SHORT).show()
+//        );
+//    }
 
-        overlayView = new LinearLayout(this);
-        overlayView.setBackgroundColor(0x80000000); // Semi-transparent black
+private void showOverlay() {
+    if (overlayShown) return;
 
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+    // Initialize WindowManager
+    windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+    // Create a LinearLayout as the overlay container
+    LinearLayout overlayLayout = new LinearLayout(this);
+    overlayLayout.setLayoutParams(new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+    ));
+    overlayLayout.setBackgroundColor(0x80000000); // Semi-transparent black
+    overlayLayout.setOrientation(LinearLayout.VERTICAL); // Fix: LinearLayout supports setOrientation()
+    //overlayLayout.setGravity(Gravity.CENTER);
+
+    // Create a TextView for the "Privacy Mode" message
+    TextView privacyText = new TextView(this);
+    privacyText.setText("Privacy Mode");
+    privacyText.setTextSize(16);
+    privacyText.setTextColor(Color.WHITE);
+    privacyText.setPadding(20, 20, 20, 20);
+    //privacyText.setGravity(Gravity.CENTER);
+    //privacyText.setTypeface(null, Typeface.BOLD);
+
+    // Add TextView to the LinearLayout
+    overlayLayout.addView(privacyText);
+
+    // WindowManager parameters for overlay
+    WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT
         );
-        params.gravity = Gravity.CENTER;
+    params.gravity = Gravity.TOP | Gravity.END; // Align to top-right
+    params.x = 20; // Margin from right
+    params.y = 20; // Margin from top
 
-        windowManager.addView(overlayView, params);
-        overlayShown = true;
-    }
+    // Add overlay to WindowManager
+    windowManager.addView(overlayLayout, params);
+    overlayShown = true;
+    overlayView = overlayLayout; // Store reference for removal
+}
+
 
     private void removeOverlay() {
         if (overlayShown && overlayView != null) {
