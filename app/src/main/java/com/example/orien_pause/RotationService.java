@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import androidx.annotation.Nullable;
+import android.widget.Button;
 
 public class RotationService extends Service implements SensorEventListener {
 
@@ -58,13 +59,19 @@ public class RotationService extends Service implements SensorEventListener {
 
     private void createOverlayView() {
         overlayView = LayoutInflater.from(this).inflate(R.layout.overlay_view, null);
+
+        // Find unlock button and set click listener
+        Button unlockButton = overlayView.findViewById(R.id.unlock_button);
+        unlockButton.setOnClickListener(view -> unlockScreen());
+
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.CENTER;
+
         overlayView.setVisibility(View.GONE);
         windowManager.addView(overlayView, params);
     }
@@ -77,9 +84,6 @@ public class RotationService extends Service implements SensorEventListener {
             if (z < -9.5 && !isScreenLocked) {
                 // Phone rotated upside down (180 degrees)
                 lockScreen();
-            } else if (z > 9.5 && isScreenLocked) {
-                // Phone returned to normal
-                unlockScreen();
             }
         }
     }
@@ -89,13 +93,14 @@ public class RotationService extends Service implements SensorEventListener {
         isScreenLocked = true;
     }
 
-    private void unlockScreen() {
-        overlayView.setVisibility(View.GONE);
-        isScreenLocked = false;
-    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    private void unlockScreen() {
+        overlayView.setVisibility(View.GONE);
+        isScreenLocked = false;
     }
 
     @Override

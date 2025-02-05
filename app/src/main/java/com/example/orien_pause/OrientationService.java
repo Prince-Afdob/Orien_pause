@@ -23,6 +23,7 @@ import android.graphics.Color;
 //import android.os.Looper;
 //import android.widget.Toast;
 import android.widget.ImageView;
+import android.widget.Button;
 
 import androidx.annotation.Nullable;
 
@@ -87,8 +88,6 @@ public class OrientationService extends Service implements SensorEventListener {
             // Lock screen when phone is between -20° and -90° tilt
             if (roll >= -90 && roll <= -20) {
                 showOverlay();
-            } else {
-                removeOverlay();
             }
         }
     }
@@ -119,65 +118,131 @@ public class OrientationService extends Service implements SensorEventListener {
 //        );
 //    }
 
-private void showOverlay() {
-    if (overlayShown) return;
+//private void showOverlay() {
+//    if (overlayShown) return;
+//
+//    // Initialize WindowManager
+//    windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+//
+//    // Create a LinearLayout as the overlay container
+//    LinearLayout overlayLayout = new LinearLayout(this);
+//    overlayLayout.setLayoutParams(new LinearLayout.LayoutParams(
+//            LinearLayout.LayoutParams.MATCH_PARENT,
+//            LinearLayout.LayoutParams.MATCH_PARENT
+//    ));
+//    overlayLayout.setBackgroundColor(0x00000000); // Semi-transparent black
+//    overlayLayout.setOrientation(LinearLayout.VERTICAL); // Fix: LinearLayout supports setOrientation()
+//    //overlayLayout.setGravity(Gravity.CENTER);
+//
+//    ImageView lockIcon = new ImageView(this);
+//    lockIcon.setImageResource(R.drawable.baseline_lock_24); // Make sure ic_lock exists in res/drawable
+//    lockIcon.setLayoutParams(new LinearLayout.LayoutParams(80, 80)); // Set icon size (adjust as needed)
+//
+//    // Create a TextView for the "Privacy Mode" message
+//    TextView privacyText = new TextView(this);
+//    privacyText.setText("Privacy Mode");
+//    privacyText.setTextSize(16);
+//    privacyText.setTextColor(Color.WHITE);
+//    privacyText.setPadding(10, 10, 10, 10);
+//    //privacyText.setGravity(Gravity.CENTER);
+//    //privacyText.setTypeface(null, Typeface.BOLD);
+//
+//    // Add TextView to the LinearLayout
+//    overlayLayout.addView(lockIcon);
+//    overlayLayout.addView(privacyText);
+//
+//
+//    // WindowManager parameters for overlay
+//    WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+//                WindowManager.LayoutParams.MATCH_PARENT,
+//                WindowManager.LayoutParams.MATCH_PARENT,
+//                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+//                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+//                PixelFormat.TRANSLUCENT
+//        );
+//    params.gravity = Gravity.TOP | Gravity.END; // Align to top-right
+//    params.x = 20; // Margin from right
+//    params.y = 20; // Margin from top
+//
+//    // Add overlay to WindowManager
+//    windowManager.addView(overlayLayout, params);
+//    overlayShown = true;
+//    overlayView = overlayLayout; // Store reference for removal
+//}
 
-    // Initialize WindowManager
-    windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+    private void showOverlay() {
+        if (overlayShown || overlayView != null) return; // Prevent multiple overlays
 
-    // Create a LinearLayout as the overlay container
-    LinearLayout overlayLayout = new LinearLayout(this);
-    overlayLayout.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-    ));
-    overlayLayout.setBackgroundColor(0x00000000); // Semi-transparent black
-    overlayLayout.setOrientation(LinearLayout.VERTICAL); // Fix: LinearLayout supports setOrientation()
-    //overlayLayout.setGravity(Gravity.CENTER);
+        // Initialize WindowManager
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
-    ImageView lockIcon = new ImageView(this);
-    lockIcon.setImageResource(R.drawable.baseline_lock_24); // Make sure ic_lock exists in res/drawable
-    lockIcon.setLayoutParams(new LinearLayout.LayoutParams(80, 80)); // Set icon size (adjust as needed)
+        // Create a full-screen LinearLayout overlay
+        LinearLayout overlayLayout = new LinearLayout(this);
+        overlayLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        ));
+        overlayLayout.setBackgroundColor(0x80000000); // Semi-transparent overlay
+        overlayLayout.setGravity(Gravity.RIGHT | Gravity.TOP); // Center elements
+//        overlayLayout.setOrientation(LinearLayout.VERTICAL);
 
-    // Create a TextView for the "Privacy Mode" message
-    TextView privacyText = new TextView(this);
-    privacyText.setText("Privacy Mode");
-    privacyText.setTextSize(16);
-    privacyText.setTextColor(Color.WHITE);
-    privacyText.setPadding(10, 10, 10, 10);
-    //privacyText.setGravity(Gravity.CENTER);
-    //privacyText.setTypeface(null, Typeface.BOLD);
+        // Create a "Privacy Mode" TextView
+        TextView privacyText = new TextView(this);
+        privacyText.setText("Privacy Mode");
+        privacyText.setTextSize(20);
+        privacyText.setTextColor(Color.WHITE);
+        privacyText.setTypeface(null, Typeface.BOLD);
+        privacyText.setPadding(10, 10, 10, 10);
 
-    // Add TextView to the LinearLayout
-    overlayLayout.addView(lockIcon);
-    overlayLayout.addView(privacyText);
+        // Create an Unlock Button
+        ImageView unlockButton = new ImageView(this);
+        unlockButton.setImageResource(R.drawable.baseline_lock_24); // Replace with actual image in res/drawable
+        unlockButton.setPadding(10, 10, 10, 10);
 
+        // Set button click listener to remove overlay
+        unlockButton.setOnClickListener(view -> removeOverlay());
 
-    // WindowManager parameters for overlay
-    WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+        // Add Fade-in Animation
+        unlockButton.setAlpha(0f); // Initially invisible
+        unlockButton.animate().alpha(1f).setDuration(1000); // Fade-in over 1 second
+
+//        LinearLayout topLayout = new LinearLayout(this);
+//        topLayout.setLayoutParams(new LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.MATCH_PARENT,
+//                LinearLayout.LayoutParams.WRAP_CONTENT
+//        ));
+//        topLayout.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+//        topLayout.addView(unlockButton);
+
+        // Add TextView and Button to Layout
+        overlayLayout.addView(privacyText);
+        overlayLayout.addView(unlockButton);
+
+        // WindowManager parameters for full-screen overlay
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
                 PixelFormat.TRANSLUCENT
         );
-    params.gravity = Gravity.TOP | Gravity.END; // Align to top-right
-    params.x = 20; // Margin from right
-    params.y = 20; // Margin from top
+        params.gravity = Gravity.RIGHT | Gravity.TOP ; // Keep elements centered
 
-    // Add overlay to WindowManager
-    windowManager.addView(overlayLayout, params);
-    overlayShown = true;
-    overlayView = overlayLayout; // Store reference for removal
-}
+        // Add overlay to WindowManager
+        windowManager.addView(overlayLayout, params);
+        overlayShown = true;
+        overlayView = overlayLayout; // Store reference for removal
+    }
 
-
+    // Method to remove overlay when Unlock button is pressed
     private void removeOverlay() {
-        if (overlayShown && overlayView != null) {
+        if (overlayView != null && windowManager != null) {
             windowManager.removeView(overlayView);
-            overlayShown = false;
+            overlayView = null;
+            overlayShown = false;  // Ensure overlay doesn't come back immediately
         }
     }
+
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {}
@@ -186,8 +251,11 @@ private void showOverlay() {
     public void onDestroy() {
         super.onDestroy();
         sensorManager.unregisterListener(this);
-        removeOverlay();
+        if (overlayShown) {
+            removeOverlay(); // Ensure overlay is removed
+        }
     }
+
 
     @Nullable
     @Override
@@ -197,7 +265,7 @@ private void showOverlay() {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        startForegroundService();
         return START_STICKY;  // Restart if killed
     }
+
 }
